@@ -2,7 +2,7 @@
 button.js
 
 var APPのonclickに以下を入れる
-clickX = Math.round(x);
+    clickX = Math.round(x);
     clickY = Math.round(y);
     console.log("Xは: " + clickX);
     console.log("Yは: " + clickY);

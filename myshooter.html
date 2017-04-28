@@ -10,10 +10,24 @@ body{
 }
 </style>
 <script src="js/unitaro.js"></script>
-<script src="js/button.js"></script>
+<script src="js/button2.js"></script>
 </head>
 <body>
 <script>
+var stageClearFlag=0;
+var enemyHP=30;
+var attack=1;
+var enemyHpWindow=0;
+var upgradeAttack=200;
+var upgradeNakama=1000000;
+var upgradeHit=500000;
+var stage=0;
+var gold=3000000;
+var clearGold=0;
+var hitSpeed=0;
+var sinkaFlag=0;
+var nakamaX=40;
+var nakamaCount=0;
 
 var PLAYER={
   w:30,
@@ -25,7 +39,7 @@ var PLAYER={
     this.y=y;
   },
   update:function(age){
-    this.x = app.WIDTH/2 + Math.sin(age/360*2*Math.PI)*100;
+    this.x = app.WIDTH/2 + Math.sin(age/180*2*Math.PI)*100;
   },
 };
 
@@ -40,15 +54,15 @@ var TAMA={
     this.set_type("tama");
   },
   update:function(age){
-    if (this.y <= 100){
+    if (this.y <= 0){
       this.stop();
-    } else if(this.y > 100) {
-      this.y -= this.speed * 5;
+    } else if(this.y > 0) {
+      this.y -= this.speed * 10;
     } 
     if (this.x < 159) {
-      this.x += this.speed;
+      this.x += hitSpeed;
     } else if (this.x > 160) {
-      this.x -= this.speed;
+      this.x -= hitSpeed;
     }
   },
   onhit:function(){
@@ -82,50 +96,467 @@ var BOMB={
 };
 
 var ENEMY={
-  w:50,
-  h:30,
+  w:120,
+  h:120,
   color:'yellow',
   speed:10,
-  init:function(x,y){
+  init:function(x,y,color){
     this.x=x;
     this.y=y;
     this.set_type("enemy");
+    this.color=color;
   },
   update:function(age){
   },
   onhit:function(){
-console.dir("hit!!!");
-    new unitaro.Task(BOMB,this.x,this.y,-5,-5);
-    new unitaro.Task(BOMB,this.x,this.y,5,-5);
-    new unitaro.Task(BOMB,this.x,this.y,-5,5);
-    new unitaro.Task(BOMB,this.x,this.y,5,5);
+    console.dir("hit!!!");
+    this.w -= (attack / enemyHP) * 100;
+    this.h = this.w;
+    if (this.w < 20) {
+      new unitaro.Task(BOMB,this.x,this.y,-5,-5);
+      new unitaro.Task(BOMB,this.x,this.y,5,-5);
+      new unitaro.Task(BOMB,this.x,this.y,-5,5);
+      new unitaro.Task(BOMB,this.x,this.y,5,5);
+      gold += clearGold;
+      this.stop();
+      stageClearFlag++;
+    }
   }
 };
+
+
+var nakama = {
+  w:30,
+  h:30,
+  color:"blue",
+  init:function(x,y) {
+    this.x = x;
+    this.y = y;
+  },
+}
+
+var TAMAnakama={
+  w:5,
+  h:5,
+  color:'white',
+  speed:1,
+  init:function(x,y){
+    this.x=x;
+    this.y=y;
+    this.set_type("tamaNakama");
+  },
+  update:function(age){
+    if (this.y <= 0){
+      this.stop();
+    } else if(this.y > 0) {
+      this.y -= this.speed * 5;
+    } 
+    if (this.x < 159) {
+      this.x += this.speed * 5;
+    } else if (this.x > 160) {
+      this.x -= this.speed * 10;
+    }
+  },
+  onhit:function(){
+    this.stop();
+  }
+};
+
+
+var TitleScene = {
+  init: function(){
+    new unitaro.Task(button,160,250,200,50,"せんべいをやっつけに行く","white");
+  },
+  update: function(age){
+  },
+  onclick: function(x,y){
+    clickX = Math.round(x);
+    clickY = Math.round(y);
+    unitaro.TaskManager.clear();
+    new unitaro.Task(Stage6);
+  }
+};
+
+var Stage0 = {
+  init: function(){
+    this.player=new unitaro.Task(PLAYER,app.WIDTH/2,450);
+    this.enemy=new unitaro.Task(ENEMY,app.WIDTH/2,100,"yellow");
+    this.enemy.set_type('enemy');
+    enemyHP = 10;
+    clearGold = 100;
+    stageClearFlag = 0;
+  },
+  update: function(age){
+    unitaro.dib.box(0,0,this.WIDTH,this.HEIGHT,"rgb(40,40,40)");
+    unitaro.dib.box(10,10,this.WIDTH-20,this.HEIGHT-20,"rgb(0,0,0)");
+    unitaro.dib.textout(50,30,"STAGE : " + stage,"white",100);
+    unitaro.dib.textout(240,30,"所持金 : " + gold + " GOLD","white",100);
+    unitaro.dib.textout(50,50,"賞金 : " + clearGold,"white",100);
+    unitaro.dib.textout(160,200,"画面をタップしてせんべいをこわせ！","yellow",200);
+    unitaro.TaskManager.hitcheck_all("tama","enemy");
+    if (stageClearFlag === 1) {
+      new unitaro.Task(button,160,70,260,70,"クリア！次のステージに行く","yellow");
+      stageClearFlag = 2;
+    }
+  },
+  onclick: function(x,y){
+    clickX = Math.round(x);
+    clickY = Math.round(y);
+    var tama=new unitaro.Task(TAMA,this.player.x,this.player.y);
+    tama.set_type('tama');
+    if (checkButton(160,70,260,70) && stageClearFlag === 2) {
+      stage++;
+      unitaro.TaskManager.clear();
+      new unitaro.Task(Stage1);
+    }
+  }
+};
+
+var Stage1 = {
+  init: function(){
+    this.player=new unitaro.Task(PLAYER,app.WIDTH/2,450);
+    this.enemy=new unitaro.Task(ENEMY,app.WIDTH/2,100,"yellow");
+    this.enemy.set_type('enemy');
+    enemyHP = 30;
+    clearGold = 500;
+    stageClearFlag = 0;
+  },
+  update: function(age){
+    unitaro.dib.box(0,0,this.WIDTH,this.HEIGHT,"rgb(40,40,40)");
+    unitaro.dib.box(10,10,this.WIDTH-20,this.HEIGHT-20,"rgb(0,0,0)");
+    unitaro.dib.textout(50,30,"STAGE : " + stage,"white",100);
+    unitaro.dib.textout(240,30,"所持金 : " + gold + " GOLD","white",100);
+    unitaro.dib.textout(50,50,"賞金 : " + clearGold,"white",100);
+    unitaro.TaskManager.hitcheck_all("tama","enemy");
+    if (stageClearFlag === 1) {
+      new unitaro.Task(button,160,70,260,70,"クリア！次のステージに行く","yellow");
+      stageClearFlag = 2;
+    }
+  },
+  onclick: function(x,y){
+    clickX = Math.round(x);
+    clickY = Math.round(y);
+    var tama=new unitaro.Task(TAMA,this.player.x,this.player.y);
+    tama.set_type('tama');
+    if (checkButton(160,70,260,70) && stageClearFlag === 2) {
+      stage++;
+      unitaro.TaskManager.clear();
+      new unitaro.Task(Stage2);
+    }
+  }
+};
+
+//攻撃力UP解放
+var Stage2 = {
+  count:0,
+  init: function(){
+    this.player=new unitaro.Task(PLAYER,app.WIDTH/2,450);
+    this.enemy=new unitaro.Task(ENEMY,app.WIDTH/2,100,"yellow");
+    this.enemy.set_type('enemy');
+    enemyHP = 100;
+    clearGold = 1000;
+    stageClearFlag = 0;
+  },
+  update: function(age){
+    unitaro.dib.box(0,0,this.WIDTH,this.HEIGHT,"rgb(40,40,40)");
+    unitaro.dib.box(10,10,this.WIDTH-20,this.HEIGHT-20,"rgb(0,0,0)");
+    unitaro.dib.textout(50,30,"STAGE : " + stage,"white",100);
+    unitaro.dib.textout(240,30,"所持金 : " + gold + " GOLD","white",100);
+    unitaro.dib.textout(50,50,"賞金 : " + clearGold,"white",100);
+    if (this.count > 15) {
+      unitaro.dib.textout(160,200,"攻撃力をあげることでせんべいを早くこわせるぞ！","yellow",300);
+      unitaro.dib.textout(230,418,"コスト : " + upgradeAttack + " GOLD","white");
+    } else if (this.count === 15) {
+      new unitaro.Task(button,100,400,130,27,"攻撃力をあげる","white");
+      this.count++;
+    }
+    unitaro.TaskManager.hitcheck_all("tama","enemy");
+    if (stageClearFlag === 1) {
+      new unitaro.Task(button,160,70,260,70,"クリア！次のステージに行く","yellow");
+      stageClearFlag = 2;
+    }
+  },
+  onclick: function(x,y){
+    clickX = Math.round(x);
+    clickY = Math.round(y);
+    this.count++;
+    var tama=new unitaro.Task(TAMA,this.player.x,this.player.y);
+    tama.set_type('tama');
+    if (checkButton(160,70,260,70) && stageClearFlag === 2) {
+      stage++;
+      unitaro.TaskManager.clear();
+      new unitaro.Task(Stage3);
+    }
+    if (checkButton(100,400,130,27) && gold >= upgradeAttack && this.count > 15) {
+      attack *= 2;
+      gold -= upgradeAttack;
+      upgradeAttack *= 3.5;
+    }
+  }
+};
+//ステージ12まで周回
+var Stage3 = {
+  init: function(){
+    this.player=new unitaro.Task(PLAYER,app.WIDTH/2,450);
+    this.enemy=new unitaro.Task(ENEMY,app.WIDTH/2,100,"yellow");
+    this.enemy.set_type('enemy');
+    new unitaro.Task(button,100,400,130,27,"攻撃力をあげる","white");
+    enemyHP = 100;
+    stageClearFlag = 0;
+  },
+  update: function(age){
+    unitaro.dib.box(0,0,this.WIDTH,this.HEIGHT,"rgb(40,40,40)");
+    unitaro.dib.box(10,10,this.WIDTH-20,this.HEIGHT-20,"rgb(0,0,0)");
+    unitaro.dib.textout(230,418,"コスト : " + upgradeAttack + " GOLD","white");
+    unitaro.dib.textout(50,30,"STAGE : " + stage,"white",100);
+    unitaro.dib.textout(240,30,"所持金 : " + gold + " GOLD","white",100);
+    unitaro.dib.textout(50,50,"賞金 : " + clearGold,"white",100);
+    unitaro.TaskManager.hitcheck_all("tama","enemy");
+    if (stageClearFlag === 1) {
+      new unitaro.Task(button,160,70,260,70,"クリア！次のステージに行く","yellow");
+      stageClearFlag = 2;
+    }
+  },
+  onclick: function(x,y){
+    clickX = Math.round(x);
+    clickY = Math.round(y);
+    var tama=new unitaro.Task(TAMA,this.player.x,this.player.y);
+    tama.set_type('tama');
+    if (checkButton(160,70,260,70) && stageClearFlag === 2) {
+      if (stage < 12) {
+      stage++;
+      clearGold = Math.floor(clearGold * 1.5);
+      unitaro.TaskManager.clear();
+      new unitaro.Task(Stage3);
+      } else {
+        unitaro.TaskManager.clear();
+        new unitaro.Task(Stage4);
+      }
+    }
+    if (checkButton(100,400,130,27) && gold >= upgradeAttack) {
+      attack *= 2;
+      gold -= upgradeAttack;
+      upgradeAttack = Math.floor(upgradeAttack * 3.5);
+    }
+  }
+};
+
+//命中力上昇解放
+var Stage4 = {
+  init: function(){
+    this.player=new unitaro.Task(PLAYER,app.WIDTH/2,450);
+    this.enemy=new unitaro.Task(ENEMY,app.WIDTH/2,100,"red");
+    this.enemy.set_type('enemy');
+    new unitaro.Task(button,100,400,130,27,"攻撃力をあげる","white");
+    new unitaro.Task(button,100,370,130,27,"命中力を上げる","white");
+    stageClearFlag = 0;
+    enemyHP = 1000;
+  },
+  update: function(age){
+    unitaro.dib.box(0,0,this.WIDTH,this.HEIGHT,"rgb(40,40,40)");
+    unitaro.dib.box(10,10,this.WIDTH-20,this.HEIGHT-20,"rgb(0,0,0)");
+    unitaro.dib.textout(230,418,"コスト : " + upgradeAttack + " GOLD","white");
+    unitaro.dib.textout(230,388,"コスト : " + upgradeHit + " GOLD","white");
+    unitaro.dib.textout(50,30,"STAGE : " + stage,"white",100);
+    unitaro.dib.textout(240,30,"所持金 : " + gold + " GOLD","white",100);
+    unitaro.dib.textout(50,50,"賞金 : " + clearGold,"white",100);
+    unitaro.dib.textout(160,200,"命中力をあげることで弾が当たりやすくなるぞ！","yellow",300);
+    unitaro.TaskManager.hitcheck_all("tama","enemy");
+    if (stageClearFlag === 1) {
+      new unitaro.Task(button,160,70,260,70,"クリア！次のステージに行く","yellow");
+      stageClearFlag = 2;
+    }
+  },
+  onclick: function(x,y){
+    clickX = Math.round(x);
+    clickY = Math.round(y);
+    var tama=new unitaro.Task(TAMA,this.player.x,this.player.y);
+    tama.set_type('tama');
+    if (checkButton(160,70,260,70) && stageClearFlag === 2) {
+      stage++;
+      enemyHP *= 1.5;
+      clearGold = Math.floor(clearGold * 1.5);
+      unitaro.TaskManager.clear();
+      new unitaro.Task(Stage5);
+    }
+    //攻撃力上昇ボタン
+    if (checkButton(100,400,130,27) && gold >= upgradeAttack) {
+      attack *= 2;
+      gold -= upgradeAttack;
+      upgradeAttack = Math.floor(upgradeAttack * 3.5);
+    }
+    //命中力上昇
+    if (checkButton(100,370,130,27) && gold >= upgradeHit) {
+      hitSpeed += 1;
+      gold -= upgradeHit;
+      upgradeHit *= 2;
+    }
+  }
+};
+
+var Stage5 = {
+  init: function(){
+    this.player=new unitaro.Task(PLAYER,app.WIDTH/2,450);
+    this.enemy=new unitaro.Task(ENEMY,app.WIDTH/2,100,"red");
+    this.enemy.set_type('enemy');
+    new unitaro.Task(button,100,400,130,27,"攻撃力をあげる","white");
+    new unitaro.Task(button,100,370,130,27,"命中力を上げる","white");
+    new unitaro.Task(button,160,200,260,50,"仲間を雇えるようにする: 200万GOLD","white");
+    stageClearFlag = 0;
+  },
+  update: function(age){
+    unitaro.dib.box(0,0,this.WIDTH,this.HEIGHT,"rgb(40,40,40)");
+    unitaro.dib.box(10,10,this.WIDTH-20,this.HEIGHT-20,"rgb(0,0,0)");
+    unitaro.dib.textout(230,418,"コスト : " + upgradeAttack + " GOLD","white");
+    unitaro.dib.textout(230,388,"コスト : " + upgradeHit + " GOLD","white",300);
+    unitaro.dib.textout(50,30,"STAGE : " + stage,"white",100);
+    unitaro.dib.textout(240,30,"所持金 : " + gold + " GOLD","white",100);
+    unitaro.dib.textout(50,50,"賞金 : " + clearGold,"white",100);
+    unitaro.TaskManager.hitcheck_all("tama","enemy");
+    if (stageClearFlag === 1) {
+      new unitaro.Task(button,160,70,260,70,"クリア！次のステージに行く","yellow");
+      stageClearFlag = 2;
+    }
+  },
+  onclick: function(x,y){
+    clickX = Math.round(x);
+    clickY = Math.round(y);
+    var tama=new unitaro.Task(TAMA,this.player.x,this.player.y);
+    tama.set_type('tama');
+    if (checkButton(160,70,260,70) && stageClearFlag === 2) {
+      if (sinkaFlag === 0) {
+      stage++;
+      enemyHP *= 1.5;
+      clearGold = Math.floor(clearGold * 1.5);
+      unitaro.TaskManager.clear();
+      new unitaro.Task(Stage5);
+      } else if (sinkaFlag === 1){
+        timer();
+        unitaro.TaskManager.clear();
+        new unitaro.Task(Stage6);
+      }
+    }
+    //攻撃力上昇ボタン
+    if (checkButton(100,400,130,27) && gold >= upgradeAttack) {
+      attack *= 2;
+      gold -= upgradeAttack;
+      upgradeAttack = Math.floor(upgradeAttack * 2.5);
+    }
+    //命中力上昇
+    if (checkButton(100,370,130,27) && gold >= upgradeHit) {
+      hitSpeed += 1;
+      gold -= upgradeHit;
+      upgradeHit *= 3;
+    }
+    //仲間を雇えるようになる
+    if (checkButton(160,200,260,50) && gold >= 2000000) {
+      gold -= 2000000;
+      sinkaFlag=1;
+    }
+  }
+};
+
+//仲間が雇えるようになる
+var Stage6 = {
+  init: function(){
+    timer();
+    this.player=new unitaro.Task(PLAYER,app.WIDTH/2,450);
+    this.enemy=new unitaro.Task(ENEMY,app.WIDTH/2,100,"red");
+    this.enemy.set_type('enemy');
+    new unitaro.Task(button,100,400,130,27,"攻撃力をあげる","white");
+    new unitaro.Task(button,100,370,130,27,"命中力を上げる","white");
+    new unitaro.Task(button,100,330,130,27,"仲間を雇う","white");
+    stageClearFlag = 0;
+    function timer(){
+  var tid = setTimeout(function(){
+    if (nakamaCount >= 1) {
+      var tamaNakama=new unitaro.Task(TAMAnakama,40,250);
+      tamaNakama.set_type('tamaNakama');
+    }
+    if (nakamaCount >= 2) {
+      var tamaNakama=new unitaro.Task(TAMAnakama,90,250);
+      tamaNakama.set_type('tamaNakama');
+    }
+    if (nakamaCount >= 3) {
+      var tamaNakama=new unitaro.Task(TAMAnakama,135,250);
+      tamaNakama.set_type('tamaNakama');
+    }
+    if (nakamaCount >= 4) {
+      var tamaNakama=new unitaro.Task(TAMAnakama,180,250);
+      tamaNakama.set_type('tamaNakama');
+    }
+    timer();
+  },1000);
+  update:function() {
+    unitaro.TaskManager.hitcheck_all("enemy","tamaNakama");
+  }
+};
+  },
+  update: function(age){
+    unitaro.dib.box(0,0,this.WIDTH,this.HEIGHT,"rgb(40,40,40)");
+    unitaro.dib.box(10,10,this.WIDTH-20,this.HEIGHT-20,"rgb(0,0,0)");
+    unitaro.dib.textout(230,418,"コスト : " + upgradeAttack + " GOLD","white");
+    unitaro.dib.textout(230,388,"コスト : " + upgradeHit + " GOLD","white",300);
+    unitaro.dib.textout(50,30,"STAGE : " + stage,"white",100);
+    unitaro.dib.textout(240,30,"所持金 : " + gold + " GOLD","white",100);
+    unitaro.dib.textout(50,50,"賞金 : " + clearGold,"white",100);
+    unitaro.TaskManager.hitcheck_all("tama","enemy","tamaNakama");
+    if (stageClearFlag === 1) {
+      new unitaro.Task(button,160,70,260,70,"クリア！次のステージに行く","yellow");
+      stageClearFlag = 2;
+    }
+  },
+  onclick: function(x,y){
+    clickX = Math.round(x);
+    clickY = Math.round(y);
+    var tama=new unitaro.Task(TAMA,this.player.x,this.player.y);
+    tama.set_type('tama');
+    if (checkButton(160,70,260,70) && stageClearFlag === 2) {
+      if (sinkaFlag === 0) {
+      stage++;
+      enemyHP *= 1.5;
+      clearGold = Math.floor(clearGold * 1.5);
+      unitaro.TaskManager.clear();
+      new unitaro.Task(Stage5);
+      } else {
+        unitaro.TaskManager.clear();
+        new unitaro.Task(Stage6);
+      }
+    }
+    //攻撃力上昇ボタン
+    if (checkButton(100,400,130,27) && gold >= upgradeAttack) {
+      attack *= 2;
+      gold -= upgradeAttack;
+      upgradeAttack = Math.floor(upgradeAttack * 2.5);
+    }
+    //命中力上昇
+    if (checkButton(100,370,130,27) && gold >= upgradeHit) {
+      hitSpeed += 1;
+      gold -= upgradeHit;
+      upgradeHit *= 3;
+    }
+    //仲間を雇えるようになる
+    if (checkButton(100,330,130,27) && gold >= upgradeNakama) {
+      new unitaro.Task(nakama,nakamaX,250);
+      nakamaX += 45;
+      nakamaCount++;
+      gold -= upgradeNakama;
+    }
+  }
+};
+
 
 var APP = {
   WIDTH: 320,
   HEIGHT: 500,
   init: function(){
-    this.player=new unitaro.Task(PLAYER,this.WIDTH/2,400);
-    this.enemy=new unitaro.Task(ENEMY,this.WIDTH/4,100);
-    this.enemy=new unitaro.Task(ENEMY,this.WIDTH/2,100);
-    this.enemy=new unitaro.Task(ENEMY,this.WIDTH*3/4,100);
-    this.enemy.set_type('enemy');
+    new unitaro.Task(TitleScene);
   },
   update: function(age){
     unitaro.dib.box(0,0,this.WIDTH,this.HEIGHT,"rgb(40,40,40)");
     unitaro.dib.box(10,10,this.WIDTH-20,this.HEIGHT-20,"rgb(0,0,0)");
-    unitaro.dib.textout(50,20,"Shooter sample","yellow",100);
-
-    unitaro.TaskManager.hitcheck_all("tama","enemy");
   },
   onclick: function(x,y){
-    clickX = Math.round(x);
-    clickY = Math.round(y);
-    console.log("Xは: " + clickX);
-    console.log("Yは: " + clickY);
-    var tama=new unitaro.Task(TAMA,this.player.x,this.player.y);
-    tama.set_type('tama');
   }
 };
 
