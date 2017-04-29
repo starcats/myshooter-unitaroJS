@@ -577,7 +577,7 @@ var Stage5 = {
       } else if (sinkaFlag === 1){
         timer();
         unitaro.TaskManager.clear();
-        new unitaro.Task(Stage6);
+        new unitaro.Task(enemyScene2);
       }
     }
     //攻撃力上昇ボタン
@@ -648,7 +648,6 @@ var changeScene2 = {
 //仲間が雇えるようになる
 var Stage6 = {
   init: function(){
-    timer();
     this.player=new unitaro.Task(PLAYER,app.WIDTH/2,450);
     this.enemy=new unitaro.Task(ENEMY,app.WIDTH/2,100,"red");
     this.enemy.set_type('enemy');
@@ -662,7 +661,7 @@ var Stage6 = {
     unitaro.dib.box(10,10,this.WIDTH-20,this.HEIGHT-20,"rgb(0,0,0)");
     unitaro.dib.textout(230,418,"コスト : " + upgradeAttack + " GOLD","white",300);
     unitaro.dib.textout(230,388,"コスト : " + upgradeHit + " GOLD","white",300);
-    unitaro.dib.textout(230,348,"コスト : " + upgradNakama + " GOLD","white",300);
+    unitaro.dib.textout(230,348,"コスト : " + upgradeNakama + " GOLD","white",300);
     unitaro.dib.textout(50,30,"STAGE : " + stage,"white",100);
     unitaro.dib.textout(240,30,"所持金 : " + gold + " GOLD","white",100);
     unitaro.dib.textout(260,50,timeMinute + "分 "+timeSecond+" 秒","white",100);
