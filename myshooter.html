@@ -138,6 +138,22 @@ var ENEMY={
   }
 };
 
+var ENEMY2={
+  w:120,
+  h:120,
+  color:'yellow',
+  speed:10,
+  init:function(x,y,color){
+    this.x=x;
+    this.y=y;
+    this.color=color;
+  },
+  update:function(age){
+  },
+  onhit:function(){
+  }
+};
+
 var BOSS={
   w:120,
   h:120,
@@ -511,6 +527,7 @@ var enemyScene = {
     new unitaro.Task(button,160,250,200,50,"せんべいの様子が…","white");
   },
   update: function(age){
+    unitaro.dib.textout(160,200,"画面をタップ","white")
   },
   onclick: function(){
     setTimeout(function(){
@@ -862,7 +879,7 @@ var Stage7 = {
       nakamaX += 45;
       nakamaCount++;
       gold -= upgradeNakama;
-      upgradeNakama = Math.floor(upgradeNakama * 1.3);
+      upgradeNakama = Math.floor(upgradeNakama * 2);
     } else if (checkButton(100,330,130,27) && nakamaCount === 6 && gold >= upgradeNakama) {
       new unitaro.Task(button,160,180,150,40,"BOSSせんべいに挑む","red");
       bossFlag=1;
@@ -871,13 +888,13 @@ var Stage7 = {
       new unitaro.Task(nakama,nakamaX,nakamaY);
       nakamaCount++;
       gold -= upgradeNakama;
-      upgradeNakama = Math.floor(upgradeNakama * 1.3);
+      upgradeNakama = Math.floor(upgradeNakama * 1.7);
     } else if (checkButton(100,330,130,27) && gold >= upgradeNakama && nakamaCount < 12) {
       nakamaX += 45;
       new unitaro.Task(nakama,nakamaX,nakamaY);
       nakamaCount++;
       gold -= upgradeNakama;
-      upgradeNakama = Math.floor(upgradeNakama * 1.3);
+      upgradeNakama = Math.floor(upgradeNakama * 1.5);
     } else if (checkButton(100,330,130,27) && nakamaCount > 12) {
       new unitaro.Task(MESSAGE2,160,230,"もう仲間を雇えません","red");
     }
