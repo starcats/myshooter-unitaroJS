@@ -41,6 +41,7 @@ var upgradeAttackWindow=0;
 var upgradeHitWindow=0;
 var upgradeNakamaWindow=0;
 var bossHP=100000000;
+var gametimeStopFlag=0;
 
 var PLAYER={
   w:30,
@@ -312,6 +313,10 @@ function gametime(){
     }
     gametime()
   },1000);
+  if (gametimeStopFlag === 1) {
+    clearTimeout(tid);
+    gametimeStopFlag=0;
+  }
 };
 
 var MESSAGE2 = {
@@ -1015,6 +1020,7 @@ var bossStage = {
       nakamaCount=0;
       bossFlag=0;
       timerStopFlag=1;
+      gametimeStopFlag=1;
       unitaro.TaskManager.clear();
       new unitaro.Task(TitleScene);
     }
